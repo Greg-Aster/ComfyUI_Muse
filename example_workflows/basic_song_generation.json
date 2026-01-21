@@ -5,21 +5,21 @@
     {
       "id": 4,
       "type": "Note",
-      "pos": [100, -280],
-      "size": [500, 260],
+      "pos": [100, -200],
+      "size": [500, 180],
       "flags": {},
       "order": 0,
       "mode": 0,
       "properties": {
-        "text": "MUSE MUSIC GENERATOR (EXPERIMENTAL)\n\nReport issues: github.com/Greg-Aster/ComfyUI_Muse\n\nKNOWN LIMITATIONS:\n- Lyrics influence style/melody, not exact words sung\n- Instrumental mode may still have vocal-like sounds\n- Quality varies by style and seed\n- This is a 0.6B research model, not production quality\n\nREQUIREMENTS:\n- First run downloads ~10GB of models\n- Requires 12-16GB VRAM\n\nSTYLE FORMAT (comma-separated tags):\n- \"Pop, Upbeat, Female Vocal, Synth, 120 BPM\"\n- \"Rock, Ballad, Male Vocal, Electric Guitar, Drums\"\n- \"Lo-fi, Hip Hop, Chill, Jazzy Piano, Vinyl Crackle\"\n\nLYRICS FORMAT:\n[Verse]\nYour verse lyrics here\n\n[Chorus]\nYour chorus lyrics here"
+        "text": "MUSE INSTRUMENTAL GENERATOR\n\nThis generates INSTRUMENTAL music only.\nNo lyrics or vocals - just melodies and instrumentals.\n\nSTYLE FORMAT:\nDescribe genre, mood, instruments, tempo.\n\nExamples:\n- \"Lo-fi hip hop, chill, jazzy piano, 85 BPM\"\n- \"Epic orchestral, cinematic, strings, dramatic\"\n- \"EDM, energetic, bass heavy, 128 BPM\""
       },
-      "widgets_values": ["MUSE MUSIC GENERATOR (EXPERIMENTAL)\n\nReport issues: github.com/Greg-Aster/ComfyUI_Muse\n\nKNOWN LIMITATIONS:\n- Lyrics influence style/melody, not exact words sung\n- Instrumental mode may still have vocal-like sounds\n- Quality varies by style and seed\n- This is a 0.6B research model, not production quality\n\nREQUIREMENTS:\n- First run downloads ~10GB of models\n- Requires 12-16GB VRAM\n\nSTYLE FORMAT (comma-separated tags):\n- \"Pop, Upbeat, Female Vocal, Synth, 120 BPM\"\n- \"Rock, Ballad, Male Vocal, Electric Guitar, Drums\"\n- \"Lo-fi, Hip Hop, Chill, Jazzy Piano, Vinyl Crackle\"\n\nLYRICS FORMAT:\n[Verse]\nYour verse lyrics here\n\n[Chorus]\nYour chorus lyrics here"]
+      "widgets_values": ["MUSE INSTRUMENTAL GENERATOR\n\nThis generates INSTRUMENTAL music only.\nNo lyrics or vocals - just melodies and instrumentals.\n\nSTYLE FORMAT:\nDescribe genre, mood, instruments, tempo.\n\nExamples:\n- \"Lo-fi hip hop, chill, jazzy piano, 85 BPM\"\n- \"Epic orchestral, cinematic, strings, dramatic\"\n- \"EDM, energetic, bass heavy, 128 BPM\""]
     },
     {
       "id": 1,
       "type": "Muse_Generate",
       "pos": [100, 100],
-      "size": [400, 550],
+      "size": [400, 300],
       "flags": {},
       "order": 1,
       "mode": 0,
@@ -40,10 +40,8 @@
         "Node name for S&R": "Muse_Generate"
       },
       "widgets_values": [
-        "[Verse]\nWalking down the empty street\nMemories beneath my feet\nEvery corner, every light\nReminds me of that night\n\n[Chorus]\nBut I keep moving on\nEven when the hope is gone\nThrough the darkness I will find\nA new light to guide my mind",
-        "Pop, Upbeat, Female Vocal, Synth, Piano, Emotional, 110 BPM",
+        "Lo-fi hip hop, chill, jazzy piano, warm bass, vinyl crackle, 85 BPM",
         30,
-        false,
         "Muse-0.6b",
         "bfloat16",
         42
@@ -108,8 +106,8 @@
   ],
   "groups": [
     {
-      "title": "Muse Music Generator - Enter lyrics and style, then Queue Prompt",
-      "bounding": [90, 50, 1140, 620],
+      "title": "Muse Instrumental Generator - Enter style, then Queue Prompt",
+      "bounding": [90, 50, 1140, 380],
       "color": "#3498db",
       "font_size": 24
     }

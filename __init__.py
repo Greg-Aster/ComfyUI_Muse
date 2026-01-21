@@ -1,9 +1,10 @@
 """
-ComfyUI_Muse - ComfyUI Node Package for Muse AI Music Generation
+ComfyUI_Muse - ComfyUI Node Package for AI Instrumental Music Generation
 
-Muse is an open-source model for reproducible long-form song generation
-with fine-grained style control.
+Generate instrumental music and melodies from style descriptions using Muse.
+This is an INSTRUMENTAL-ONLY generator - no lyrics/vocals supported.
 
+Based on Muse 0.6B research model from Fudan NLP Lab.
 GitHub: https://github.com/yuhui1038/Muse
 Paper: https://arxiv.org/abs/2601.03973
 """
@@ -254,7 +255,7 @@ class MuseModelManager:
 
 
 class Muse_Generate:
-    """Generate music from lyrics and style using Muse."""
+    """Generate instrumental music from style description using Muse."""
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -268,17 +269,11 @@ class Muse_Generate:
 
         return {
             "required": {
-                "lyrics": ("STRING", {
+                "style": ("STRING", {
                     "multiline": True,
-                    "default": "[Verse]\nYour lyrics here\n\n[Chorus]\nCatchy hook here",
+                    "default": "Lo-fi hip hop, chill, jazzy piano, warm bass, vinyl crackle, 85 BPM",
                     "dynamicPrompts": False,
-                    "placeholder": "[Verse]\nLyrics...\n\n[Chorus]\nHook...",
-                }),
-                "style_description": ("STRING", {
-                    "multiline": True,
-                    "default": "Pop, upbeat, synth, 120 BPM",
-                    "dynamicPrompts": False,
-                    "placeholder": "Genre, mood, instruments, tempo",
+                    "placeholder": "Genre, mood, instruments, tempo...",
                 }),
                 "duration_seconds": ("INT", {
                     "default": 30,
@@ -287,7 +282,6 @@ class Muse_Generate:
                     "step": 5,
                     "display": "slider",
                 }),
-                "instrumental": ("BOOLEAN", {"default": False}),
                 "model_name": (model_list, {"default": model_list[0]}),
                 "dtype": (["bfloat16", "float16"], {"default": "bfloat16"}),
                 "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff}),
@@ -303,8 +297,8 @@ class Muse_Generate:
     FUNCTION = "generate"
     CATEGORY = "Muse"
 
-    def generate(self, lyrics, style_description, duration_seconds, instrumental,
-                 model_name, dtype, seed, temperature=1.0, top_p=0.9):
+    def generate(self, style, duration_seconds, model_name, dtype, seed,
+                 temperature=0.6, top_p=0.95):
         from muse_pipeline import MuseConfig
 
         # Unload MuCodec first to free VRAM for Muse model
@@ -323,36 +317,27 @@ class Muse_Generate:
         manager = MuseModelManager()
         pipe = manager.get_muse_pipeline(model_name, dtype)
 
-        # Build style string
-        style = style_description.strip() if style_description.strip() else "Music"
-        if instrumental:
-            style = f"{style}, Instrumental, No Vocals"
-
-        # Handle empty lyrics for instrumental
-        if not lyrics.strip():
-            if instrumental:
-                lyrics = "[Instrumental]"
-            else:
-                lyrics = "[Verse]\n(lyrics here)"
+        # Build style string - always instrumental
+        style_str = style.strip() if style.strip() else "Instrumental music"
+        style_str = f"{style_str}, Instrumental, No Vocals"
 
         config = MuseConfig(
             max_new_tokens=max_tokens,
             temperature=temperature,
             top_p=top_p,
-            top_k=20,  # Model's recommended value
+            top_k=20,
             repetition_penalty=1.1,
             do_sample=True,
         )
 
-        print(f"[Muse] Generating {duration_seconds}s audio (~{max_tokens} tokens)")
-        print(f"[Muse] Style: {style[:100]}...")
-        print(f"[Muse] Instrumental: {instrumental}")
+        print(f"[Muse] Generating {duration_seconds}s instrumental (~{max_tokens} tokens)")
+        print(f"[Muse] Style: {style_str[:100]}...")
 
         try:
             with torch.inference_mode():
                 result = pipe.generate(
-                    lyrics=lyrics,
-                    global_style=style,
+                    lyrics="[Instrumental]",  # Always instrumental
+                    global_style=style_str,
                     segment_styles=None,
                     config=config,
                     seed=seed,
@@ -480,10 +465,10 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "Muse_Generate": "Muse Music Generator",
+    "Muse_Generate": "Muse Instrumental Generator",
     "Muse_Decode": "Muse Audio Decoder",
     "Muse_UnloadModels": "Muse Unload Models",
 }
 
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']
-__version__ = "2.0.0"
+__version__ = "3.0.0"  # Breaking change: instrumental-only
