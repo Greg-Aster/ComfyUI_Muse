@@ -50,16 +50,41 @@ def download_hf_repo(repo_id: str, dest_path: str):
         return False
 
 
+def format_size(bytes):
+    """Format bytes as human-readable size."""
+    for unit in ['B', 'KB', 'MB', 'GB']:
+        if bytes < 1024:
+            return f"{bytes:.1f}{unit}"
+        bytes /= 1024
+    return f"{bytes:.1f}TB"
+
+
+def download_progress(block_num, block_size, total_size):
+    """Progress callback for urlretrieve."""
+    downloaded = block_num * block_size
+    if total_size > 0:
+        percent = min(100, downloaded * 100 / total_size)
+        downloaded_str = format_size(downloaded)
+        total_str = format_size(total_size)
+        bar_length = 30
+        filled = int(bar_length * percent / 100)
+        bar = '█' * filled + '░' * (bar_length - filled)
+        print(f"\r  [{bar}] {percent:5.1f}% ({downloaded_str}/{total_str})", end='', flush=True)
+    else:
+        print(f"\r  Downloaded: {format_size(downloaded)}", end='', flush=True)
+
+
 def download_file(url: str, dest_path: str):
-    """Download a file from URL."""
-    print(f"Downloading {url}...")
+    """Download a file from URL with progress indicator."""
+    print(f"Downloading {url}")
     try:
         import urllib.request
         os.makedirs(os.path.dirname(dest_path), exist_ok=True)
-        urllib.request.urlretrieve(url, dest_path)
+        urllib.request.urlretrieve(url, dest_path, reporthook=download_progress)
+        print()  # Newline after progress bar
         return True
     except Exception as e:
-        print(f"Error downloading: {e}")
+        print(f"\nError downloading: {e}")
         return False
 
 

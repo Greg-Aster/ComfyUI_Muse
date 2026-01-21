@@ -76,14 +76,28 @@ class MusePipeline:
 
     def _format_prompt(self, lyrics: str, global_style: str, segment_styles: Dict[str, str] = None) -> str:
         """Format the prompt for Muse model input."""
-        content = f"Generate a song with the following specifications:\n\n"
-        content += f"Global Style: {global_style}\n\n"
-        content += f"Lyrics:\n{lyrics}\n"
+        # Check if instrumental mode (detected by keywords in style or lyrics)
+        is_instrumental = (
+            "instrumental" in global_style.lower() or
+            "no vocal" in global_style.lower() or
+            lyrics.strip().lower() == "[instrumental]"
+        )
 
-        if segment_styles:
-            content += "\nSegment-specific styles:\n"
-            for segment, style in segment_styles.items():
-                content += f"- {segment.capitalize()}: {style}\n"
+        if is_instrumental:
+            # Strong instrumental prompt - emphasize no vocals multiple ways
+            content = f"Generate an INSTRUMENTAL piece of music with NO VOCALS, NO SINGING, NO VOICE.\n\n"
+            content += f"Style: {global_style}\n\n"
+            content += "This is purely instrumental music. Do not include any vocals, singing, humming, or voice.\n"
+            content += "Focus on: melody, harmony, rhythm, instruments only.\n"
+        else:
+            content = f"Generate a song with the following specifications:\n\n"
+            content += f"Global Style: {global_style}\n\n"
+            content += f"Lyrics:\n{lyrics}\n"
+
+            if segment_styles:
+                content += "\nSegment-specific styles:\n"
+                for segment, style in segment_styles.items():
+                    content += f"- {segment.capitalize()}: {style}\n"
 
         return content
 

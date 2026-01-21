@@ -55,32 +55,45 @@ def auto_download_models():
     codec_path = os.path.join(MODEL_BASE_DIR, "mucodec", "mucodec.pt")
     audioldm_path = os.path.join(current_dir, "mucodec", "tools", "audioldm_48k.pth")
 
+    # Build download list with sizes for user feedback
     downloads_needed = []
+    total_size = 0
     if not os.path.exists(muse_path):
-        downloads_needed.append(("Muse-0.6b", muse_path))
+        downloads_needed.append(("Muse-0.6b", muse_path, "1.2GB"))
+        total_size += 1.2
     if not os.path.exists(codec_path):
-        downloads_needed.append(("mucodec.pt", codec_path))
+        downloads_needed.append(("mucodec.pt", codec_path, "4GB"))
+        total_size += 4
     if not os.path.exists(audioldm_path):
-        downloads_needed.append(("audioldm_48k.pth", audioldm_path))
+        downloads_needed.append(("audioldm_48k.pth", audioldm_path, "5GB"))
+        total_size += 5
 
     if not downloads_needed:
         return True
 
-    print(f"[Muse] Downloading {len(downloads_needed)} required model(s)...")
+    print("")
+    print("=" * 60)
+    print("[Muse] First-time setup: Downloading required models")
+    print("=" * 60)
+    print(f"[Muse] Models to download: {len(downloads_needed)} (~{total_size:.1f}GB total)")
+    for name, _, size in downloads_needed:
+        print(f"       - {name} ({size})")
+    print("[Muse] This may take several minutes depending on your connection...")
+    print("")
 
     try:
         from huggingface_hub import hf_hub_download, snapshot_download
 
-        for name, path in downloads_needed:
+        for i, (name, path, size) in enumerate(downloads_needed, 1):
+            print(f"[Muse] [{i}/{len(downloads_needed)}] Downloading {name} ({size})...")
+
             if name == "Muse-0.6b":
-                print(f"[Muse] Downloading Muse-0.6b model (~1.2GB)...")
                 snapshot_download(
                     repo_id="bolshyC/Muse-0.6b",
                     local_dir=path,
                     local_dir_use_symlinks=False,
                 )
             elif name == "mucodec.pt":
-                print(f"[Muse] Downloading MuCodec weights (~4GB)...")
                 os.makedirs(os.path.dirname(path), exist_ok=True)
                 hf_hub_download(
                     repo_id="AcademiCodec/MuCodec",
@@ -89,7 +102,6 @@ def auto_download_models():
                     local_dir_use_symlinks=False,
                 )
             elif name == "audioldm_48k.pth":
-                print(f"[Muse] Downloading AudioLDM VAE (~5GB)...")
                 os.makedirs(os.path.dirname(path), exist_ok=True)
                 hf_hub_download(
                     repo_id="AcademiCodec/MuCodec",
@@ -97,17 +109,24 @@ def auto_download_models():
                     local_dir=os.path.dirname(path),
                     local_dir_use_symlinks=False,
                 )
-            print(f"[Muse] Downloaded {name}")
+            print(f"[Muse] ✓ {name} downloaded successfully")
 
+        print("")
+        print("=" * 60)
         print("[Muse] All models downloaded successfully!")
+        print("[Muse] You're ready to generate music.")
+        print("=" * 60)
+        print("")
         return True
 
     except ImportError:
-        print("[Muse] huggingface_hub not installed. Run: pip install huggingface_hub")
+        print("[Muse] ERROR: huggingface_hub not installed.")
+        print("[Muse] Run: pip install huggingface_hub")
         return False
     except Exception as e:
-        print(f"[Muse] Download failed: {e}")
-        print("[Muse] Please run: python install.py in the ComfyUI_Muse folder")
+        print(f"[Muse] ERROR: Download failed: {e}")
+        print("[Muse] Try running manually: python install.py")
+        print(f"[Muse] Location: {current_dir}")
         return False
 
 
