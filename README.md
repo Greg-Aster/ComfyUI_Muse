@@ -1,20 +1,43 @@
 # ComfyUI_Muse
 
-> **EXPERIMENTAL** - This is a research model (0.6B parameters). Quality varies. Please report issues on GitHub.
+---
 
-ComfyUI node package for **Muse** - an open-source AI music generation model for reproducible long-form song generation with fine-grained style control.
+## ⚠️ EXPERIMENTAL RESEARCH PROJECT ⚠️
+
+**THIS IS NOT A PRODUCTION-READY MUSIC GENERATOR**
+
+This is a ComfyUI wrapper around a 0.6B parameter research model. Set your expectations accordingly.
+
+---
+
+## ❌ LYRICS DO NOT WORK
+
+**The model CANNOT produce recognizable sung words.** The "lyrics" input affects melody rhythm and vocal-like sounds (humming, vocoded textures), but **you will NOT hear actual words being sung**. This is a fundamental limitation of the underlying Muse 0.6B model, not a bug in this implementation.
+
+If you need AI-generated music with actual lyrics, this is not the tool for you.
+
+---
+
+## What This Actually Does
+
+ComfyUI node package for **Muse** - an open-source AI music generation model from [Fudan NLP Lab](https://github.com/yuhui1038/Muse).
+
+- Generates **melody and instrumental textures** based on style descriptions
+- Produces **vocal-like sounds** (hums, vocoded sounds) - NOT intelligible lyrics
+- Useful for **style exploration and melody generation experiments**
 
 **GitHub:** https://github.com/Greg-Aster/ComfyUI_Muse
 
 Based on: ["Muse: Towards Reproducible Long-Form Song Generation"](https://arxiv.org/abs/2601.03973)
 
-## Important Limitations
+## Known Limitations
 
-⚠️ **This is a 0.6B research model trained on synthetic data. Expect:**
-- **Lyrics do NOT produce recognizable words** - they influence melody/style, not sung text
-- **Instrumental mode may still have vocal-like sounds**
-- **Quality varies significantly by style and seed**
-- **Best for melody generation and style exploration, not production music**
+| What You Might Expect | What Actually Happens |
+|----------------------|----------------------|
+| Lyrics sung clearly | Humming/vocoded sounds that follow rhythm |
+| "Instrumental" = no vocals | May still have vocal-like textures |
+| Consistent quality | Varies wildly by style and seed |
+| Production-ready output | Research-grade experimental output |
 
 ## Features
 
@@ -57,7 +80,9 @@ Models download automatically on first run:
 [Muse Music Generator] → [Muse Audio Decoder] → [Preview Audio]
 ```
 
-## Lyrics Format
+## Lyrics Format (Affects Rhythm/Melody Only)
+
+> **Remember:** Lyrics do NOT produce sung words. They influence the melodic rhythm and phrasing.
 
 Use section markers to structure your song:
 
@@ -65,32 +90,30 @@ Use section markers to structure your song:
 [Verse]
 Walking down the empty street
 Memories beneath my feet
-Every corner, every light
-Reminds me of that night
 
 [Chorus]
 But I keep moving on
-Even when the hope is gone
-
-[Bridge]
-Through the storm I'll find my way
-
-[Outro]
-La la la...
 ```
 
-**For instrumental:** Enable the `instrumental` toggle and leave lyrics empty or use `[Instrumental]`.
+The text affects:
+- **Syllable rhythm** - More syllables = faster melodic phrasing
+- **Section structure** - [Verse], [Chorus], etc. create musical transitions
+- **NOT the actual words** - You will hear hums/vocoded sounds, not these words
+
+**For instrumental:** Enable the `instrumental` toggle (note: may still have vocal-like textures).
 
 ## Style Examples
 
 Describe the style in natural language:
 
-- `"Pop, upbeat, female vocals, synth, 120 BPM"`
+- `"Pop, upbeat, synth, piano, 120 BPM"`
 - `"Rock ballad, emotional, electric guitar, drums"`
 - `"Lo-fi hip hop, chill, jazzy piano, vinyl crackle"`
 - `"EDM, energetic, drop, bass heavy, festival vibes"`
 - `"Acoustic folk, warm, fingerpicking guitar, intimate"`
-- `"90s R&B, smooth, soulful vocals, groovy bass"`
+- `"90s R&B, smooth, groovy bass"`
+
+Note: Style tags like "female vocals" or "male vocals" may influence the timbre of vocal-like sounds but will not produce intelligible singing.
 
 ## Hardware Requirements
 
