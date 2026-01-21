@@ -1,0 +1,28 @@
+[project]
+name = "comfyui-muse"
+description = "ComfyUI nodes for Muse AI music generation - generate songs from lyrics and style descriptions"
+version = "0.1.0"
+license = "MIT"
+readme = "README.md"
+requires-python = ">=3.10"
+
+dependencies = [
+    "torch>=2.0.0",
+    "torchaudio>=2.0.0",
+    "transformers>=4.40.0",
+    "safetensors>=0.4.0",
+    "huggingface_hub>=0.20.0",
+    "librosa>=0.10.0",
+    "soundfile>=0.12.0",
+    "einops>=0.7.0",
+    "psutil>=5.9.0",
+]
+
+[project.urls]
+Repository = "https://github.com/Greg-Aster/ComfyUI_Muse"
+Issues = "https://github.com/Greg-Aster/ComfyUI_Muse/issues"
+
+[tool.comfy]
+PublisherId = "Greg-Aster"
+DisplayName = "Muse Music Generator"
+Icon = "https://raw.githubusercontent.com/Greg-Aster/ComfyUI_Muse/main/assets/icon.png"

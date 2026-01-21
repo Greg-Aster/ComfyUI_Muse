@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Model weights (downloaded at runtime)
+mucodec/ckpt/
+mucodec/tools/*.pth
+mucodec/test_wav/
+mucodec/reconstructed/
+
+# Temporary files
+*.tmp
+*.log

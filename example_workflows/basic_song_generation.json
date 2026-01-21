@@ -1,0 +1,115 @@
+{
+  "last_node_id": 5,
+  "last_link_id": 2,
+  "nodes": [
+    {
+      "id": 4,
+      "type": "Note",
+      "pos": [100, -280],
+      "size": [500, 260],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "properties": {
+        "text": "MUSE MUSIC GENERATOR (EXPERIMENTAL)\n\nThis is an experimental node package for AI music generation.\nReport issues: github.com/Greg-Aster/ComfyUI_Muse\n\nFirst run auto-downloads models (~10GB total).\nRequires 12-16GB VRAM. Models swap automatically.\n\nLYRICS FORMAT:\n[Verse]\nYour lyrics here\n\n[Chorus]\nCatchy hook here\n\nSTYLE EXAMPLES:\n- \"Pop, upbeat, female vocals, synth, 120 BPM\"\n- \"Rock ballad, emotional, electric guitar, drums\"\n- \"Lo-fi hip hop, chill, jazzy piano\"\n- \"EDM, energetic, bass heavy, festival\"\n\nFor instrumental: enable 'instrumental' toggle"
+      },
+      "widgets_values": ["MUSE MUSIC GENERATOR (EXPERIMENTAL)\n\nThis is an experimental node package for AI music generation.\nReport issues: github.com/Greg-Aster/ComfyUI_Muse\n\nFirst run auto-downloads models (~10GB total).\nRequires 12-16GB VRAM. Models swap automatically.\n\nLYRICS FORMAT:\n[Verse]\nYour lyrics here\n\n[Chorus]\nCatchy hook here\n\nSTYLE EXAMPLES:\n- \"Pop, upbeat, female vocals, synth, 120 BPM\"\n- \"Rock ballad, emotional, electric guitar, drums\"\n- \"Lo-fi hip hop, chill, jazzy piano\"\n- \"EDM, energetic, bass heavy, festival\"\n\nFor instrumental: enable 'instrumental' toggle"]
+    },
+    {
+      "id": 1,
+      "type": "Muse_Generate",
+      "pos": [100, 100],
+      "size": [400, 550],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "outputs": [
+        {
+          "name": "tokens",
+          "type": "MUSE_TOKENS",
+          "links": [1],
+          "slot_index": 0
+        },
+        {
+          "name": "info",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "Muse_Generate"
+      }
+    },
+    {
+      "id": 2,
+      "type": "Muse_Decode",
+      "pos": [550, 100],
+      "size": [320, 180],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "tokens",
+          "type": "MUSE_TOKENS",
+          "link": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "links": [2],
+          "slot_index": 0
+        },
+        {
+          "name": "filepath",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "Muse_Decode"
+      }
+    },
+    {
+      "id": 3,
+      "type": "PreviewAudio",
+      "pos": [920, 100],
+      "size": [300, 100],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "link": 2
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PreviewAudio"
+      }
+    }
+  ],
+  "links": [
+    [1, 1, 0, 2, 0, "MUSE_TOKENS"],
+    [2, 2, 0, 3, 0, "AUDIO"]
+  ],
+  "groups": [
+    {
+      "title": "Muse Music Generator - Enter lyrics and style, then Queue Prompt",
+      "bounding": [90, 50, 1140, 620],
+      "color": "#3498db",
+      "font_size": 24
+    }
+  ],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 1,
+      "offset": [0, 0]
+    }
+  },
+  "version": 0.4
+}

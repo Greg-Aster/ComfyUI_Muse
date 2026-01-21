@@ -1,0 +1,23 @@
+# ComfyUI_Muse Requirements
+# Models auto-download on first use
+
+# Model inference
+transformers>=4.40.0
+accelerate>=0.26.0
+safetensors>=0.4.0
+huggingface_hub>=0.20.0
+
+# Audio processing
+torchaudio>=2.0.0
+soundfile>=0.12.0
+
+# MuCodec dependencies
+diffusers>=0.25.0
+einops>=0.7.0
+scipy>=1.10.0
+
+# Utilities
+tqdm>=4.66.0
+psutil>=5.9.0
+
+# Note: torch and numpy are assumed via ComfyUI
