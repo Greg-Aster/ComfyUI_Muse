@@ -14,11 +14,14 @@ from dataclasses import dataclass
 
 @dataclass
 class MuseConfig:
-    """Configuration for Muse model."""
+    """Configuration for Muse model.
+
+    Default values match the model's generation_config.json for optimal results.
+    """
     max_new_tokens: int = 3000
-    temperature: float = 1.0
-    top_p: float = 0.9
-    top_k: int = 50
+    temperature: float = 0.6  # Model default (was 1.0)
+    top_p: float = 0.95       # Model default (was 0.9)
+    top_k: int = 20           # Model default (was 50)
     repetition_penalty: float = 1.1
     do_sample: bool = True
 
@@ -74,35 +77,70 @@ class MusePipeline:
         if self.model is None:
             self._load_model()
 
+    def _parse_lyrics_sections(self, lyrics: str) -> List[Dict[str, str]]:
+        """Parse lyrics into sections based on [Section] markers."""
+        import re
+        sections = []
+
+        # Split by section markers like [Verse], [Chorus], etc.
+        pattern = r'\[([^\]]+)\]'
+        parts = re.split(pattern, lyrics)
+
+        # parts will be: ['', 'Verse', 'lyrics...', 'Chorus', 'lyrics...', ...]
+        i = 1
+        while i < len(parts):
+            section_name = parts[i].strip()
+            section_text = parts[i + 1].strip() if i + 1 < len(parts) else ""
+            if section_text:
+                sections.append({
+                    "section": section_name,
+                    "text": section_text
+                })
+            i += 2
+
+        # If no sections found, treat entire lyrics as one verse
+        if not sections and lyrics.strip():
+            sections.append({
+                "section": "Verse",
+                "text": lyrics.strip()
+            })
+
+        return sections
+
     def _format_prompt(self, lyrics: str, global_style: str, segment_styles: Dict[str, str] = None) -> str:
-        """Format the prompt for Muse model input."""
-        # Check if instrumental mode (detected by keywords in style or lyrics)
+        """Format the prompt for Muse model input.
+
+        Matches the training data format from the Muse dataset:
+        - Style: comma-separated style tags
+        - Sections with section name, lyrics, and musical description
+        """
+        # Check if instrumental mode
         is_instrumental = (
             "instrumental" in global_style.lower() or
             "no vocal" in global_style.lower() or
-            lyrics.strip().lower() == "[instrumental]"
+            lyrics.strip().lower() == "[instrumental]" or
+            not lyrics.strip()
         )
 
-        if is_instrumental:
-            # Strong instrumental prompt - emphasize no vocals multiple ways
-            content = f"Generate an INSTRUMENTAL piece of music with NO VOCALS, NO SINGING, NO VOICE.\n\n"
-            content += f"Style: {global_style}\n\n"
-            content += "This is purely instrumental music. Do not include any vocals, singing, humming, or voice.\n"
-            content += "Focus on: melody, harmony, rhythm, instruments only.\n"
-        else:
-            content = f"Generate a song with the following specifications:\n\n"
-            content += f"Global Style: {global_style}\n\n"
-            content += f"Lyrics:\n{lyrics}\n"
+        # Build structured prompt matching training format
+        content = f"Style: {global_style}\n\n"
 
-            if segment_styles:
-                content += "\nSegment-specific styles:\n"
-                for segment, style in segment_styles.items():
-                    content += f"- {segment.capitalize()}: {style}\n"
+        if is_instrumental:
+            content += "[Instrumental]\n"
+            content += "Generate instrumental music with no vocals.\n"
+        else:
+            # Parse lyrics into sections
+            sections = self._parse_lyrics_sections(lyrics)
+
+            for section in sections:
+                content += f"[{section['section']}]\n"
+                content += f"{section['text']}\n\n"
 
         return content
 
     def _build_messages(self, user_content: str) -> List[Dict[str, str]]:
         """Build chat messages for the model."""
+        # Simple user message - model was trained to generate [SOA]..audio tokens..[EOA]
         return [
             {"role": "user", "content": user_content},
         ]
@@ -142,11 +180,12 @@ class MusePipeline:
         user_content = self._format_prompt(lyrics, global_style, segment_styles)
         messages = self._build_messages(user_content)
 
-        # Apply chat template
+        # Apply chat template (thinking disabled to maximize audio tokens)
         formatted_prompt = self.tokenizer.apply_chat_template(
             messages,
             tokenize=False,
             add_generation_prompt=True,
+            enable_thinking=False,
         )
 
         # Tokenize
@@ -156,17 +195,19 @@ class MusePipeline:
             padding=True,
         ).to(self.device)
 
-        # Generate
+        # Generate - disable EOS stopping to ensure we get the full requested duration
         with torch.inference_mode():
             outputs = self.model.generate(
                 **inputs,
                 max_new_tokens=config.max_new_tokens,
+                min_new_tokens=config.max_new_tokens,  # Force generation of full length
                 temperature=config.temperature if config.do_sample else None,
                 top_p=config.top_p if config.do_sample else None,
                 top_k=config.top_k if config.do_sample else None,
                 repetition_penalty=config.repetition_penalty,
                 do_sample=config.do_sample,
                 pad_token_id=self.tokenizer.pad_token_id or self.tokenizer.eos_token_id,
+                eos_token_id=[],  # Disable early stopping on EOS
             )
 
         # Decode output
@@ -186,46 +227,31 @@ class MusePipeline:
     def _parse_audio_tokens(self, text: str) -> List[int]:
         """Parse audio tokens from generated text.
 
-        Muse outputs audio tokens in <AUDIO_XXXXX> format.
-        These need to be converted to MuCodec codes by subtracting vocab_offset.
+        Muse outputs audio tokens in <AUDIO_XXXXX> format, wrapped in [SOA]...[EOA].
+        The XXXXX values are MuCodec codebook indices (0-16383).
         """
         # Remove thinking tags if present
         text = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL)
 
+        # Try to extract content between [SOA] and [EOA] markers
+        soa_match = re.search(r'\[SOA\](.*?)(?:\[EOA\]|$)', text, flags=re.DOTALL)
+        if soa_match:
+            audio_section = soa_match.group(1)
+        else:
+            audio_section = text
+
         # Find all AUDIO tokens in <AUDIO_XXXXX> format
-        tokens = re.findall(r'<AUDIO_(\d+)>', text)
+        tokens = re.findall(r'<AUDIO_(\d+)>', audio_section)
         token_ids = [int(t) for t in tokens]
 
-        print(f"[Muse] Found {len(token_ids)} audio tokens in output")
-        if token_ids:
-            print(f"[Muse] Raw token IDs: min={min(token_ids)}, max={max(token_ids)}")
-            print(f"[Muse] First 5 raw tokens: {token_ids[:5]}")
-
-        # Check if tokens need vocab offset adjustment
-        # Muse uses Qwen tokenizer with vocab_size=151643. Audio tokens are added
-        # after the text vocab, so raw token IDs may be offset by 151643.
-        # MuCodec codebook has 16384 entries (0-16383).
-        # If tokens are already in valid range, use directly; otherwise subtract offset.
-        vocab_offset = 151643  # Qwen tokenizer vocab size
-        max_codebook = 16383   # MuCodec codebook max index
-
-        if token_ids and max(token_ids) > max_codebook:
-            # Tokens have vocab offset applied, need to subtract
-            print(f"[Muse] Tokens appear offset-adjusted, subtracting {vocab_offset}")
-            codes = [t - vocab_offset for t in token_ids]
-        else:
-            # Tokens are already raw MuCodec codes
-            print(f"[Muse] Tokens are raw MuCodec codes, using directly")
-            codes = token_ids
-
-        if codes:
-            print(f"[Muse] Codes before clamping: min={min(codes)}, max={max(codes)}")
+        # The XXXXX in <AUDIO_XXXXX> is already the MuCodec code (0-16383)
+        max_codebook = 16383
 
         # Clamp to valid codebook range (0-16383)
-        codes = [max(0, min(c, max_codebook)) for c in codes]
+        codes = [max(0, min(t, max_codebook)) for t in token_ids]
 
         if codes:
-            print(f"[Muse] Final codes (0-16383): min={min(codes)}, max={max(codes)}")
+            print(f"[Muse] Parsed {len(codes)} audio tokens (range: {min(codes)}-{max(codes)})")
 
         return codes
 
@@ -363,67 +389,33 @@ class MuCodecPipeline:
         # Convert to tensor with shape (batch, 1, time)
         codes = torch.tensor(tokens, dtype=torch.long)
 
-        # Debug: show token statistics
-        print(f"[MuCodec] Token stats: min={min(tokens)}, max={max(tokens)}, unique={len(set(tokens))}")
-        print(f"[MuCodec] First 10 tokens: {tokens[:10]}")
-
         if codes.ndim == 1:
             codes = codes.unsqueeze(0).unsqueeze(0)  # (T,) -> (1, 1, T)
         elif codes.ndim == 2:
             codes = codes.unsqueeze(0)  # (1, T) -> (1, 1, T)
 
-        print(f"[MuCodec] Decoding {codes.shape[-1]} tokens, shape={codes.shape}...")
-
-        # Aggressive memory cleanup before decode to prevent fragmentation
-        gc.collect()
+        # Memory cleanup before decode
         gc.collect()
         torch.cuda.empty_cache()
-        if torch.cuda.is_available():
-            torch.cuda.synchronize()
-            allocated = torch.cuda.memory_allocated() / 1024**3
-            print(f"[MuCodec] VRAM before decode: {allocated:.2f}GB")
 
-        # Monitor resources during decode
-        import psutil
-        import time
-        process = psutil.Process()
-        cpu_before = process.cpu_percent()
-        mem_before = process.memory_info().rss / 1024 / 1024  # MB
-        start_time = time.time()
-
-        # Calculate actual duration from token count (~25 tokens/second)
-        # Add small buffer for safety, but don't over-allocate
+        # Calculate decode duration from token count (~25 tokens/second)
         tokens_per_second = 25.0
         actual_duration = len(tokens) / tokens_per_second
-        # Clamp to reasonable range: min 10.24s (MuCodec minimum), max 120s
-        # Round up to nearest 10.24s chunk (MuCodec's internal chunk size)
-        chunk_size = 10.24
+        chunk_size = 10.24  # MuCodec's internal chunk size
         decode_duration = max(chunk_size, min(120.0,
             ((actual_duration // chunk_size) + 1) * chunk_size))
 
-        print(f"[MuCodec] Token duration: {actual_duration:.1f}s, decode buffer: {decode_duration:.1f}s")
-
         # Decode using MuCodec's code2sound
-        # Using fewer diffusion steps (15 instead of 20) to reduce peak memory
         waveform = self.codec.code2sound(
             codes,
             prompt=None,
-            duration=decode_duration,  # Dynamic based on actual token count
+            duration=decode_duration,
             guidance_scale=1.5,
-            num_steps=15,  # Reduced from 20 for lower memory usage
+            num_steps=15,  # Reduced for lower memory usage
             disable_progress=False,
         )
 
-        elapsed = time.time() - start_time
-        cpu_after = process.cpu_percent()
-        mem_after = process.memory_info().rss / 1024 / 1024  # MB
-        print(f"[MuCodec] Decode took {elapsed:.2f}s, CPU: {cpu_after:.1f}%, RAM: {mem_after:.0f}MB (delta: {mem_after-mem_before:+.0f}MB)")
-
-        # waveform shape is (channels, samples) at 48kHz
         waveform = waveform.detach().cpu().float()
-
-        # Debug: show waveform statistics
-        print(f"[MuCodec] Waveform stats: min={waveform.min().item():.4f}, max={waveform.max().item():.4f}, mean={waveform.mean().item():.4f}, std={waveform.std().item():.4f}")
 
         # Resample if needed
         if sample_rate != self.NATIVE_SAMPLE_RATE:
@@ -431,8 +423,6 @@ class MuCodecPipeline:
             waveform = torchaudio.functional.resample(
                 waveform, self.NATIVE_SAMPLE_RATE, sample_rate
             )
-
-        print(f"[MuCodec] Decoded audio: {waveform.shape}, {sample_rate}Hz")
 
         return {
             "waveform": waveform,

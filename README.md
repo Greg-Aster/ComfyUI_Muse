@@ -1,6 +1,6 @@
 # ComfyUI_Muse
 
-> **EXPERIMENTAL** - This node package is under active development. Please report issues on GitHub.
+> **EXPERIMENTAL** - This is a research model (0.6B parameters). Quality varies. Please report issues on GitHub.
 
 ComfyUI node package for **Muse** - an open-source AI music generation model for reproducible long-form song generation with fine-grained style control.
 
@@ -8,12 +8,18 @@ ComfyUI node package for **Muse** - an open-source AI music generation model for
 
 Based on: ["Muse: Towards Reproducible Long-Form Song Generation"](https://arxiv.org/abs/2601.03973)
 
+## Important Limitations
+
+⚠️ **This is a 0.6B research model trained on synthetic data. Expect:**
+- **Lyrics do NOT produce recognizable words** - they influence melody/style, not sung text
+- **Instrumental mode may still have vocal-like sounds**
+- **Quality varies significantly by style and seed**
+- **Best for melody generation and style exploration, not production music**
+
 ## Features
 
 - **One-click install** - Models auto-download on first use (~10GB)
-- **Long-form song generation** - Generate complete songs from lyrics
-- **Fine-grained style control** - Describe any style, genre, mood, instruments
-- **Instrumental mode** - Generate music without vocals
+- **Style-influenced generation** - Describe any style, genre, mood, instruments
 - **Duration control** - 5-300 seconds
 - **Memory efficient** - Automatic model swapping for 12-16GB GPUs
 
@@ -30,7 +36,7 @@ pip install -r requirements.txt
 
 ### 2. Restart ComfyUI and Load Workflow
 
-Load `example_workflows/basic_song_generation.json`
+Load the example workflow: **[example_workflows/basic_song_generation.json](example_workflows/basic_song_generation.json)**
 
 Models download automatically on first run:
 - Muse-0.6b (~1.2GB)

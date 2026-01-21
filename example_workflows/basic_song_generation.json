@@ -11,9 +11,9 @@
       "order": 0,
       "mode": 0,
       "properties": {
-        "text": "MUSE MUSIC GENERATOR (EXPERIMENTAL)\n\nReport issues: github.com/Greg-Aster/ComfyUI_Muse\n\nKNOWN LIMITATIONS:\n- Lyrics may not match sung words exactly\n- Instrumental mode may still have vocal-like sounds\n- Quality varies by style and seed\n- Best for melody/style, not precise lyrics\n\nREQUIREMENTS:\n- First run downloads ~10GB of models\n- Requires 12-16GB VRAM\n\nSTYLE is most important - be descriptive:\n- \"Pop, upbeat, female vocals, synth, 120 BPM\"\n- \"Rock ballad, male vocals, electric guitar\"\n- \"Lo-fi hip hop, chill, jazzy piano\"\n\nLYRICS: Use [Verse], [Chorus] markers.\nFor instrumental: enable toggle, leave lyrics empty."
+        "text": "MUSE MUSIC GENERATOR (EXPERIMENTAL)\n\nReport issues: github.com/Greg-Aster/ComfyUI_Muse\n\nKNOWN LIMITATIONS:\n- Lyrics influence style/melody, not exact words sung\n- Instrumental mode may still have vocal-like sounds\n- Quality varies by style and seed\n- This is a 0.6B research model, not production quality\n\nREQUIREMENTS:\n- First run downloads ~10GB of models\n- Requires 12-16GB VRAM\n\nSTYLE FORMAT (comma-separated tags):\n- \"Pop, Upbeat, Female Vocal, Synth, 120 BPM\"\n- \"Rock, Ballad, Male Vocal, Electric Guitar, Drums\"\n- \"Lo-fi, Hip Hop, Chill, Jazzy Piano, Vinyl Crackle\"\n\nLYRICS FORMAT:\n[Verse]\nYour verse lyrics here\n\n[Chorus]\nYour chorus lyrics here"
       },
-      "widgets_values": ["MUSE MUSIC GENERATOR (EXPERIMENTAL)\n\nReport issues: github.com/Greg-Aster/ComfyUI_Muse\n\nKNOWN LIMITATIONS:\n- Lyrics may not match sung words exactly\n- Instrumental mode may still have vocal-like sounds\n- Quality varies by style and seed\n- Best for melody/style, not precise lyrics\n\nREQUIREMENTS:\n- First run downloads ~10GB of models\n- Requires 12-16GB VRAM\n\nSTYLE is most important - be descriptive:\n- \"Pop, upbeat, female vocals, synth, 120 BPM\"\n- \"Rock ballad, male vocals, electric guitar\"\n- \"Lo-fi hip hop, chill, jazzy piano\"\n\nLYRICS: Use [Verse], [Chorus] markers.\nFor instrumental: enable toggle, leave lyrics empty."]
+      "widgets_values": ["MUSE MUSIC GENERATOR (EXPERIMENTAL)\n\nReport issues: github.com/Greg-Aster/ComfyUI_Muse\n\nKNOWN LIMITATIONS:\n- Lyrics influence style/melody, not exact words sung\n- Instrumental mode may still have vocal-like sounds\n- Quality varies by style and seed\n- This is a 0.6B research model, not production quality\n\nREQUIREMENTS:\n- First run downloads ~10GB of models\n- Requires 12-16GB VRAM\n\nSTYLE FORMAT (comma-separated tags):\n- \"Pop, Upbeat, Female Vocal, Synth, 120 BPM\"\n- \"Rock, Ballad, Male Vocal, Electric Guitar, Drums\"\n- \"Lo-fi, Hip Hop, Chill, Jazzy Piano, Vinyl Crackle\"\n\nLYRICS FORMAT:\n[Verse]\nYour verse lyrics here\n\n[Chorus]\nYour chorus lyrics here"]
     },
     {
       "id": 1,
@@ -38,7 +38,16 @@
       ],
       "properties": {
         "Node name for S&R": "Muse_Generate"
-      }
+      },
+      "widgets_values": [
+        "[Verse]\nWalking down the empty street\nMemories beneath my feet\nEvery corner, every light\nReminds me of that night\n\n[Chorus]\nBut I keep moving on\nEven when the hope is gone\nThrough the darkness I will find\nA new light to guide my mind",
+        "Pop, Upbeat, Female Vocal, Synth, Piano, Emotional, 110 BPM",
+        30,
+        false,
+        "Muse-0.6b",
+        "bfloat16",
+        42
+      ]
     },
     {
       "id": 2,
@@ -70,7 +79,8 @@
       ],
       "properties": {
         "Node name for S&R": "Muse_Decode"
-      }
+      },
+      "widgets_values": ["mucodec.pt", "48000"]
     },
     {
       "id": 3,

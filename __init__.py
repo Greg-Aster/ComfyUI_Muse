@@ -293,8 +293,8 @@ class Muse_Generate:
                 "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff}),
             },
             "optional": {
-                "temperature": ("FLOAT", {"default": 1.0, "min": 0.1, "max": 2.0, "step": 0.05}),
-                "top_p": ("FLOAT", {"default": 0.9, "min": 0.1, "max": 1.0, "step": 0.05}),
+                "temperature": ("FLOAT", {"default": 0.6, "min": 0.1, "max": 2.0, "step": 0.05}),
+                "top_p": ("FLOAT", {"default": 0.95, "min": 0.1, "max": 1.0, "step": 0.05}),
             }
         }
 
@@ -339,7 +339,7 @@ class Muse_Generate:
             max_new_tokens=max_tokens,
             temperature=temperature,
             top_p=top_p,
-            top_k=50,
+            top_k=20,  # Model's recommended value
             repetition_penalty=1.1,
             do_sample=True,
         )
